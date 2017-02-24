@@ -1,0 +1,102 @@
+extends layout
+block content
+    #slider-date
+    #map
+    script.
+
+        var map = L.map('map',{ center: [#{lat},#{lng}], zoom: 13});
+
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { 
+            attribution: '© OpenStreetMap' 
+        }).addTo(map);
+
+        function color(x) {
+            return x >= 500.0 ? '#ffffb2' :
+                   x >= 100.0 ? '#fed976' :
+                   x >= 60.0 ? '#feb24c' :
+                   x >= 45.0 ? '#fd8d3c' :
+                   x >= 35.0 ? '#fc4e2a' :
+                   x >= 25.0 ? '#e31a1c' :
+                   x >= 0.0 ? '#b10026' :'#ffffff';              
+        } 
+
+        function markerOptions(feature) {
+            return {
+                radius: 8,
+                fillColor: color(feature.properties.accuracy),
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            };
+        }
+
+        var pointsLayer = new L.LayerGroup();
+
+        $("#slider-date").dateRangeSlider({
+            bounds: {min: new Date(2014, 2, 8), max: new Date(2015, 7, 17)},
+            defaultValues: {min: new Date(2015, 2, 21), max: new Date(2015, 3, 20)}
+        });
+
+        $(function() {
+
+            $("#slider-date").bind("valuesChanged", function(e, data){
+                var dateVal = $("#slider-date").dateRangeSlider("values");
+                var minDate = dateVal.min.getFullYear()+"-"+padZero(dateVal.min.getMonth()+1)+"-"+padZero(dateVal.min.getDate());
+                var maxDate = dateVal.max.getFullYear()+"-"+padZero(dateVal.max.getMonth()+1)+"-"+padZero(dateVal.max.getDate());
+                //console.log(minDate+ " " + maxDate);
+                loadPoints(minDate, maxDate);
+            });
+
+            var dateVal = $("#slider-date").dateRangeSlider("values");
+            var dateBegin = dateVal.min.getFullYear()+"-"+padZero(dateVal.min.getMonth()+1)+"-"+padZero(dateVal.min.getDate());
+            var dateEnd = dateVal.max.getFullYear()+"-"+padZero(dateVal.max.getMonth()+1)+"-"+padZero(dateVal.max.getDate());
+            //console.log(dateBegin);
+
+            map.on('dragend', function(e) {
+                var dateVal = $("#slider-date").dateRangeSlider("values");
+                var dateBegin = dateVal.min.getFullYear()+"-"+padZero(dateVal.min.getMonth()+1)+"-"+padZero(dateVal.min.getDate());
+                var dateEnd = dateVal.max.getFullYear()+"-"+padZero(dateVal.max.getMonth()+1)+"-"+padZero(dateVal.max.getDate());
+                loadPoints(dateBegin, dateEnd);
+            });
+
+            map.on('zoomend', function(e) {
+                var dateVal = $("#slider-date").dateRangeSlider("values");
+                var dateBegin = dateVal.min.getFullYear()+"-"+padZero(dateVal.min.getMonth()+1)+"-"+padZero(dateVal.min.getDate());
+                var dateEnd = dateVal.max.getFullYear()+"-"+padZero(dateVal.max.getMonth()+1)+"-"+padZero(dateVal.max.getDate());
+                loadPoints(dateBegin, dateEnd);
+            });
+
+            loadPoints(dateBegin, dateEnd);
+
+        });
+
+        function padZero(val) {
+            val = val + "";
+            if (val.length == 1) {
+                val = "0" + val;
+            }
+            return val;
+        }
+
+        function loadPoints(beginDt, endDt) {
+            pointsLayer.clearLayers();
+            var bounds = map.getBounds();
+            var north = bounds.getNorth();
+            var south = bounds.getSouth();
+            var east = bounds.getEast();
+            var west = bounds.getWest();
+
+            //var beginDt = "#{beginDate}";
+            //var endDt = "#{endDate}";
+
+            $.getJSON('/pointgetjson/'+north+'/'+south+'/'+east+'/'+west+'/'+beginDt+'/'+endDt,function(result){
+                L.geoJson(result, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, markerOptions(feature)).bindPopup(feature.properties.timestamp+' '+ feature.properties.accuracy);
+                    }
+                }).addTo(pointsLayer);
+            });
+            map.addLayer(pointsLayer);
+        }
+

@@ -1,0 +1,21 @@
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+#slider-date {
+  height: 15%;
+}
+
+#map {
+  height: 85%;
+}
+
+a {
+  color: #00B7FF;
+}

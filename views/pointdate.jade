@@ -1,0 +1,71 @@
+extends layout
+block content
+    #slider-date
+    #map
+    script.
+
+        var map = L.map('map',{ center: [34.0779,-118.2193], zoom: 11});
+
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { 
+            attribution: '© OpenStreetMap' 
+        }).addTo(map);
+
+        var pointsLayer = new L.LayerGroup();
+
+        var markerOptions = {
+            radius: 8,
+            fillColor: "#ff7800",
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        };
+
+        $(function() {
+
+            var dateBegin = "#{beginDate}";
+            var dateEnd = "#{endDate}";
+
+            $("#slider-date").dateRangeSlider({
+                bounds: {min: new Date(2014, 2, 8), max: new Date(2015, 7, 17)},
+                defaultValues: {min: new Date(2015, 3, 17), max: new Date(2015, 3, 22)}
+            });
+
+            $("#slider-date").bind("valuesChanged", function(e, data){
+                var dateValues = $("#slider-date").dateRangeSlider("values");
+                var minDate = dateValues.min.getFullYear()+"-"+padZero(dateValues.min.getMonth()+1)+"-"+padZero(dateValues.min.getDate());
+                var maxDate = dateValues.max.getFullYear()+"-"+padZero(dateValues.max.getMonth()+1)+"-"+padZero(dateValues.max.getDate());
+                //console.log(minDate+ " " + maxDate);
+                loadPoints(minDate, maxDate);
+            });
+
+            loadPoints(dateBegin, dateEnd);
+
+            //map.on('dragend', function(e) {
+            //    loadPoints(dateBegin, dateEnd);
+            //});
+        });
+
+        function padZero(val) {
+            val = val + "";
+            if (val.length == 1) {
+                val = "0" + val;
+            }
+            return val;
+        }
+
+        function loadPoints(beginDt, endDt) {
+            pointsLayer.clearLayers();
+            //var beginDt = "#{beginDate}";
+            //var endDt = "#{endDate}";
+
+            $.getJSON('/pointjsondate/'+beginDt+'/'+endDt,function(result){
+                L.geoJson(result, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, markerOptions).bindPopup(feature.properties.timestamp);
+                    }
+                }).addTo(pointsLayer);
+            });
+            map.addLayer(pointsLayer);
+
+        }
