@@ -1,7 +1,9 @@
 # gpoints
 Geospatial points mapped using MongoDB, Node, Express and Leaflet 
 
-For this to work you will need to get some geospatial point data and load it into MongoDB, then create a 2dsphere index on the collection.
+Demo running on Heroku platform: https://secret-earth-76587.herokuapp.com/gpoints/34.1629/-118.3123
+
+You can deploy this to your own local or Heroku environment, or any type of server that can run node.js. You will need to get some geospatial point data and load it into MongoDB, then create a 2dsphere index on the collection.
 
 Example commands to do this, starting from your CLI:
 
