@@ -3,9 +3,13 @@ var router = express.Router();
 
 // Mongoose import
 var mongoose = require('mongoose');
+
+var uristring = 
+    process.env.MONGODB_URI || 
+    'mongodb://localhost/geospat';
  
 // Mongoose connection to MongoDB
-mongoose.connect('mongodb://localhost/geospat', function (error) {
+mongoose.connect(uristring, function (error) {
     if (error) {
         console.log(error);
     }
