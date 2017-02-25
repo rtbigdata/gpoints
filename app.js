@@ -9,7 +9,7 @@ var index = require('./routes/index');
 
 var app = express();
 
-app.set('port', (process.env.PORT || 5000));
+// app.set('port', (process.env.PORT || 5000));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,6 +22,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.listen(process.env.PORT || 5000);
 
 app.use('/', index);
 
